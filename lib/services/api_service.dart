@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 
@@ -29,7 +30,13 @@ class ApiService {
   final http.Client _client = http.Client();
 
   /// Construye y valida la URI completa.
-  Uri _buildUri(String endpoint, {Map<String, String>? queryParameters}) {
+  ///
+  /// [endpoint] - Ruta del endpoint (ej. '/reportes/')
+  /// [queryParameters] - Parámetros de consulta opcionales
+  ///
+  /// Retorna una [Uri] válida y lista para usar.
+  /// Lanza [ApiException] si la URL base no está configurada o es inválida.
+  Uri buildUri(String endpoint, {Map<String, String>? queryParameters}) {
     final baseUrl = ApiConfig.baseUrl;
     if (baseUrl.isEmpty) {
       throw ApiException(
@@ -68,7 +75,7 @@ class ApiService {
     required String endpoint,
     Map<String, String>? queryParameters,
   }) async {
-    final uri = _buildUri(endpoint, queryParameters: queryParameters);
+    final uri = buildUri(endpoint, queryParameters: queryParameters);
 
     try {
       final response = await _client.get(uri).timeout(_timeout);
@@ -94,7 +101,7 @@ class ApiService {
     required String endpoint,
     required Map<String, dynamic> body,
   }) async {
-    final uri = _buildUri(endpoint);
+    final uri = buildUri(endpoint);
 
     try {
       final response = await _client
@@ -128,7 +135,7 @@ class ApiService {
     required Map<String, String> fields,
     required List<http.MultipartFile> files,
   }) async {
-    final uri = _buildUri(endpoint);
+    final uri = buildUri(endpoint);
 
     try {
       final request = http.MultipartRequest('POST', uri);
@@ -163,7 +170,7 @@ class ApiService {
     String filename = 'cedula.jpg',
     String contentType = 'image/jpeg',
   }) async {
-    final uri = _buildUri(endpoint);
+    final uri = buildUri(endpoint);
 
     try {
       final request = http.MultipartRequest('POST', uri);
@@ -221,13 +228,13 @@ class ApiService {
 
     throw ApiException(
       statusCode: statusCode,
-      message: _httpStatusMessage(statusCode),
+      message: httpStatusMessage(statusCode),
       detail: detail,
     );
   }
 
   /// Mensaje legible para códigos de estado HTTP comunes.
-  String _httpStatusMessage(int statusCode) {
+  String httpStatusMessage(int statusCode) {
     switch (statusCode) {
       case 400:
         return 'Solicitud incorrecta';
@@ -243,6 +250,68 @@ class ApiService {
         return 'Error de red o timeout';
       default:
         return 'Error HTTP $statusCode';
+    }
+  }
+
+  /// Realiza una petición POST multipart/form-data con archivos desde el sistema de archivos.
+  ///
+  /// [endpoint] - Ruta del endpoint
+  /// [fields] - Campos de formulario (clave-valor string)
+  /// [files] - Lista de archivos a subir (File objects)
+  /// [fileFieldName] - Nombre del campo para los archivos (default: 'evidencias')
+  ///
+  /// Retorna la respuesta HTTP completa.
+  /// Lanza [ApiException] en caso de error.
+  Future<http.Response> postMultipartWithFiles({
+    required String endpoint,
+    required Map<String, String> fields,
+    required List<File> files,
+    String fileFieldName = 'evidencias',
+  }) async {
+    final uri = buildUri(endpoint);
+
+    try {
+      final request = http.MultipartRequest('POST', uri);
+      request.fields.addAll(fields);
+
+      for (int i = 0; i < files.length; i++) {
+        final file = files[i];
+        final extension = file.path.split('.').last.toLowerCase();
+        final mimeType = switch (extension) {
+          'jpg' || 'jpeg' => 'image/jpeg',
+          'png' => 'image/png',
+          'gif' => 'image/gif',
+          'webp' => 'image/webp',
+          _ => 'application/octet-stream',
+        };
+
+        // Validar tamaño localmente (5MB)
+        final fileSize = await file.length();
+        if (fileSize > 5 * 1024 * 1024) {
+          throw ApiException(
+            statusCode: 422,
+            message: 'Evidencia #${i + 1} excede 5MB',
+          );
+        }
+
+        request.files.add(await http.MultipartFile.fromPath(
+          fileFieldName,
+          file.path,
+          contentType: http.MediaType.parse(mimeType),
+        ));
+      }
+
+      final streamedResponse = await _client.send(request).timeout(const Duration(seconds: 60));
+      final response = await http.Response.fromStream(streamedResponse);
+
+      return response;
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw ApiException(
+        statusCode: 0,
+        message: 'Error de conexión: ${e.toString()}',
+      );
     }
   }
 

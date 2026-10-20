@@ -122,3 +122,59 @@ class CedulaData {
 
   int get cedulaComoInt => int.tryParse(numeroDocumento) ?? 0;
 }
+
+/// Tipo de incidente disponible en el catálogo.
+class Incidente {
+  final int id;
+  final String incidente;
+  final int idTpIncidente;
+  final int idPrioridad;
+
+  Incidente({
+    required this.id,
+    required this.incidente,
+    required this.idTpIncidente,
+    required this.idPrioridad,
+  });
+
+  factory Incidente.fromJson(Map<String, dynamic> json) {
+    return Incidente(
+      id: json['id'] as int,
+      incidente: json['incidente'] as String,
+      idTpIncidente: json['id_tp_incidente'] as int,
+      idPrioridad: json['id_prioridad'] as int,
+    );
+  }
+
+  @override
+  String toString() => 'Incidente(id: $id, nombre: $incidente)';
+}
+
+/// Respuesta del endpoint de creación de reporte.
+class ReporteCreateResponse {
+  final int idReporte;
+  final String mensaje;
+  final String? municipio;
+  final Map<String, String>? evidencias;
+  final String? mensajeEvidencias;
+
+  ReporteCreateResponse({
+    required this.idReporte,
+    required this.mensaje,
+    this.municipio,
+    this.evidencias,
+    this.mensajeEvidencias,
+  });
+
+  factory ReporteCreateResponse.fromJson(Map<String, dynamic> json) {
+    return ReporteCreateResponse(
+      idReporte: json['id_reporte'] as int,
+      mensaje: json['p_mensaje'] as String,
+      municipio: json['municipio'] as String?,
+      evidencias: json['evidencias'] != null
+          ? Map<String, String>.from(json['evidencias'] as Map)
+          : null,
+      mensajeEvidencias: json['mensaje_evidencias'] as String?,
+    );
+  }
+}

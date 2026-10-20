@@ -3,6 +3,7 @@ import '../../services/auth_service.dart';
 import '../../services/secure_storage_service.dart';
 import '../../models/usuario.dart';
 import 'login_screen.dart';
+import 'crear_reporte_screen.dart';
 
 /// Pantalla principal (menú) de Cundicents tras autenticación exitosa.
 ///
@@ -128,6 +129,13 @@ class _MenuScreenState extends State<MenuScreen> {
         );
       }
     }
+  }
+
+  /// Navega a la pantalla de crear reporte.
+  void _irACrearReporte() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => CrearReporteScreen(usuario: _usuario!)),
+    );
   }
 
   void _mostrarError(String mensaje) {
@@ -417,9 +425,15 @@ class _MenuScreenState extends State<MenuScreen> {
         _buildModuleCard(
           icon: Icons.assignment_outlined,
           title: 'Reportar incidente',
-          subtitle: 'Próximamente',
+          subtitle: 'Crear nuevo reporte',
           color: _rojo,
-          onTap: () => _mostrarProximamente('Reportar incidente'),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => CrearReporteScreen(usuario: _usuario!),
+              ),
+            );
+          },
         ),
         const SizedBox(height: 12),
 
@@ -593,23 +607,23 @@ class _MenuScreenState extends State<MenuScreen> {
       ),
       child: Row(
         children: [
-          _buildNavItem(0, Icons.home_outlined, 'Inicio', true),
-          _buildNavItem(1, Icons.assignment_outlined, 'Reportes', false),
-          _buildNavItem(2, Icons.history_outlined, 'Historial', false),
-          _buildNavItem(3, Icons.person_outlined, 'Perfil', false),
+          _buildNavItem(0, Icons.add_outlined, 'Crear', true, onTap: _irACrearReporte),
+          _buildNavItem(1, Icons.history_outlined, 'Historial', false, onTap: () => _mostrarProximamente('Historial')),
+          _buildNavItem(2, Icons.person_outlined, 'Usuario', false, onTap: () => _mostrarProximamente('Usuario')),
+          _buildNavItem(3, Icons.logout, 'Salir', false, isLogout: true, onTap: _cerrarSesion),
         ],
       ),
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label, bool isActive) {
+  Widget _buildNavItem(int index, IconData icon, String label, bool isActive,
+    {VoidCallback? onTap, bool isLogout = false}) {
+    final Color itemColor = isLogout ? _rojo : (isActive ? _rojo : const Color(0xFF9A9276));
+    final Color backgroundColor = isActive ? const Color(0xFFFDF6D9) : Colors.transparent;
+
     return Expanded(
       child: InkWell(
-        onTap: () {
-          if (!isActive) {
-            _mostrarProximamente(label);
-          }
-        },
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
@@ -618,16 +632,14 @@ class _MenuScreenState extends State<MenuScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: isActive
-                    ? BoxDecoration(
-                        color: const Color(0xFFFDF6D9),
-                        borderRadius: BorderRadius.circular(12),
-                      )
-                    : null,
+                decoration: BoxDecoration(
+                  color: backgroundColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Icon(
                   icon,
                   size: 24,
-                  color: isActive ? _rojo : const Color(0xFF9A9276),
+                  color: itemColor,
                 ),
               ),
               const SizedBox(height: 4),
@@ -637,7 +649,7 @@ class _MenuScreenState extends State<MenuScreen> {
                   fontSize: 9.5,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.2,
-                  color: isActive ? _rojo : const Color(0xFF9A9276),
+                  color: itemColor,
                 ),
               ),
             ],

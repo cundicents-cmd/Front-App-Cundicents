@@ -4,6 +4,8 @@ import 'api_service.dart';
 import 'secure_storage_service.dart';
 import 'crypto_service.dart';
 import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
 
 /// Servicio de autenticación y registro de usuarios.
 ///
@@ -255,6 +257,113 @@ class AuthService {
   /// Cierra la sesión eliminando las credenciales almacenadas.
   Future<void> logout() async {
     await SecureStorageService.limpiarSesion();
+  }
+
+  /// Obtiene la lista de todos los tipos de incidentes disponibles.
+  ///
+  /// Llama a `GET /incidentes/`.
+  ///
+  /// Retorna una lista de [Incidente].
+  /// Lanza [ApiException] en caso de error.
+  Future<List<Incidente>> obtenerIncidentes() async {
+    final response = await _apiService.get(
+      endpoint: ApiEndpoints.getIncidentes,
+    );
+
+    final List<dynamic> data = response as List<dynamic>;
+    return data.map((json) => Incidente.fromJson(json as Map<String, dynamic>)).toList();
+  }
+
+  /// Crea un reporte de incidente con evidencias.
+  ///
+  /// Llama a `POST /reportes/` con multipart/form-data.
+  ///
+  /// Parámetros:
+  /// - [idUsuario]: ID del usuario autenticado
+  /// - [idIncidente]: ID del tipo de incidente seleccionado
+  /// - [descripcion]: Descripción del reporte (incluye ubicación de referencia)
+  /// - [latitud]: Latitud GPS
+  /// - [longitud]: Longitud GPS
+  /// - [evidencias]: Lista de archivos de imagen (máximo 4)
+  ///
+  /// Retorna [ReporteCreateResponse] con el resultado.
+  /// Lanza [ApiException] en caso de error.
+  Future<ReporteCreateResponse> crearReporte({
+    required int idUsuario,
+    required int idIncidente,
+    required String descripcion,
+    required double latitud,
+    required double longitud,
+    required List<File> evidencias,
+  }) async {
+    // Validar coordenadas localmente antes de enviar
+    if (latitud < -90 || latitud > 90 || longitud < -180 || longitud > 180) {
+      throw ApiException(
+        statusCode: 422,
+        message: 'Coordenadas inválidas',
+        detail: 'Latitud debe estar entre -90 y 90, longitud entre -180 y 180',
+      );
+    }
+    if (evidencias.length > 4) {
+      throw ApiException(
+        statusCode: 422,
+        message: 'Máximo 4 evidencias permitidas',
+      );
+    }
+
+    final ubicacionJson = jsonEncode({
+      'latitud': latitud,
+      'longitud': longitud,
+    });
+
+    // Usar el método público postMultipartWithFiles del ApiService
+    final http.Response response = await _apiService.postMultipartWithFiles(
+      endpoint: ApiEndpoints.createReport,
+      fields: {
+        'id_usuario': idUsuario.toString(),
+        'id_incidente': idIncidente.toString(),
+        'descripcion': descripcion,
+        'ubicacion': ubicacionJson,
+      },
+      files: evidencias,
+      fileFieldName: 'evidencias',
+    );
+
+    return _processReporteResponse(response);
+  }
+
+  /// Procesa la respuesta del endpoint de creación de reporte.
+  ReporteCreateResponse _processReporteResponse(http.Response response) {
+    final statusCode = response.statusCode;
+    final body = response.body;
+
+    if (statusCode >= 200 && statusCode < 300) {
+      if (body.isEmpty) throw ApiException(statusCode: statusCode, message: 'Respuesta vacía');
+      try {
+        final json = jsonDecode(body);
+        return ReporteCreateResponse.fromJson(json as Map<String, dynamic>);
+      } catch (e) {
+        throw ApiException(
+          statusCode: statusCode,
+          message: 'Respuesta inválida del servidor',
+          detail: body,
+        );
+      }
+    }
+
+    String detail = body;
+    try {
+      final json = jsonDecode(body);
+      if (json is Map && json.containsKey('detail')) {
+        detail = json['detail'].toString();
+      }
+    } catch (_) {}
+
+    throw ApiException(
+      statusCode: statusCode,
+      message: _apiService.httpStatusMessage(statusCode),
+      detail: detail,
+    );
   }
 
   void dispose() {
