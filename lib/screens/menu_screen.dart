@@ -4,6 +4,7 @@ import '../../services/secure_storage_service.dart';
 import '../../models/usuario.dart';
 import 'login_screen.dart';
 import 'crear_reporte_screen.dart';
+import 'historial_screen.dart';
 
 /// Pantalla principal (menú) de Cundicents tras autenticación exitosa.
 ///
@@ -135,6 +136,13 @@ class _MenuScreenState extends State<MenuScreen> {
   void _irACrearReporte() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => CrearReporteScreen(usuario: _usuario!)),
+    );
+  }
+
+  /// Navega a la pantalla de historial.
+  void _irAHistorial() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => HistorialScreen(usuario: _usuario!)),
     );
   }
 
@@ -608,7 +616,7 @@ class _MenuScreenState extends State<MenuScreen> {
       child: Row(
         children: [
           _buildNavItem(0, Icons.add_outlined, 'Crear', true, onTap: _irACrearReporte),
-          _buildNavItem(1, Icons.history_outlined, 'Historial', false, onTap: () => _mostrarProximamente('Historial')),
+          _buildNavItem(1, Icons.history_outlined, 'Historial', false, onTap: _irAHistorial),
           _buildNavItem(2, Icons.person_outlined, 'Usuario', false, onTap: () => _mostrarProximamente('Usuario')),
           _buildNavItem(3, Icons.logout, 'Salir', false, isLogout: true, onTap: _cerrarSesion),
         ],
