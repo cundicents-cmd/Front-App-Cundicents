@@ -45,7 +45,6 @@ class ApiService {
       );
     }
     final url = ApiConfig.buildUrl(endpoint);
-    print('API Request URL: $url');
     try {
       final uri = Uri.parse(url).replace(queryParameters: queryParameters);
       if (!uri.hasScheme || (uri.scheme != 'http' && uri.scheme != 'https')) {

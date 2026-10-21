@@ -54,7 +54,7 @@ class ReportePendiente {
       idEstado: json['id_estado'] as int,
       estado: json['estado'] as String,
       descripcion: json['descripcion'] as String,
-      fechaHora: DateTime.parse(json['fecha_hora'] as String),
+      fechaHora: _parseUtcDateTime(json['fecha_hora'] as String),
       ubicacion: json['ubicacion']?.cast<String, dynamic>(),
       evidencias: json['evidencias']?.cast<String, dynamic>(),
     );
@@ -156,7 +156,7 @@ class ReporteHistorico {
       prioridad: json['prioridad'] as String,
       estado: json['estado'] as String,
       descripcion: json['descripcion'] as String,
-      fechaHora: DateTime.parse(json['fecha_hora'] as String),
+      fechaHora: _parseUtcDateTime(json['fecha_hora'] as String),
       ubicacion: json['ubicacion']?.cast<String, dynamic>(),
       evidencias: json['evidencias']?.cast<String, dynamic>(),
     );
@@ -241,4 +241,15 @@ class ReporteCreateResponse {
       mensajeEvidencias: json['mensaje_evidencias'] as String?,
     );
   }
+}
+
+/// Parsea una fecha ISO 8601 asumiendo UTC si no tiene indicador de zona horaria.
+/// La API devuelve fechas como "2026-10-20T03:24:03" (UTC sin sufijo Z).
+DateTime _parseUtcDateTime(String dateString) {
+  // Si ya tiene Z o indicador de offset (+/-HH:mm), parsear directo
+  if (dateString.endsWith('Z') || dateString.contains(RegExp(r'[+-]\d{2}:?\d{2}$'))) {
+    return DateTime.parse(dateString).toUtc();
+  }
+  // Si no tiene indicador, asumir UTC añadiendo Z
+  return DateTime.parse('${dateString}Z');
 }

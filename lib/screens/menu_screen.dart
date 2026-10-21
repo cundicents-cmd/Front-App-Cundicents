@@ -448,9 +448,9 @@ class _MenuScreenState extends State<MenuScreen> {
         _buildModuleCard(
           icon: Icons.history_outlined,
           title: 'Historial de reportes',
-          subtitle: 'Próximamente',
+          subtitle: 'Ver reportes pendientes y completados',
           color: _amarillo,
-          onTap: () => _mostrarProximamente('Historial de reportes'),
+          onTap: _irAHistorial,
         ),
         const SizedBox(height: 12),
 
@@ -469,33 +469,6 @@ class _MenuScreenState extends State<MenuScreen> {
           subtitle: 'Próximamente',
           color: _gris,
           onTap: () => _mostrarProximamente('Ayuda y soporte'),
-        ),
-
-        const SizedBox(height: 30),
-
-        // Botón de cerrar sesión
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: _cerrarSesion,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: _rojo,
-              side: BorderSide(color: _rojo, width: 1.5),
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.logout, size: 20),
-                const SizedBox(width: 9),
-                const Text(
-                  'Cerrar sesión',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                ),
-              ],
-            ),
-          ),
         ),
 
         const SizedBox(height: 20),

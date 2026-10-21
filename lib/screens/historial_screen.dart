@@ -485,7 +485,7 @@ class _HistorialScreenState extends State<HistorialScreen> with SingleTickerProv
       return _buildEmptyState(
         icon: Icons.assignment_outlined,
         titulo: 'Sin reportes',
-        subtitulo: 'No hay reportes ${_tabController.index == 0 ? 'pendientes' : 'completados'} registrados.',
+        subtitulo: 'No hay reportes ${esPendientes ? 'pendientes' : 'completados'} registrados.',
       );
     }
 
@@ -497,11 +497,10 @@ class _HistorialScreenState extends State<HistorialScreen> with SingleTickerProv
         itemCount: reportes.length,
         itemBuilder: (context, index) {
           final reporte = reportes[index];
-          final esPendiente = _tabController.index == 0;
-          final reportePendiente = esPendiente ? reporte as ReportePendiente : null;
-          final reporteHistorico = !esPendiente ? reporte as ReporteHistorico : null;
+          final reportePendiente = esPendientes ? reporte as ReportePendiente : null;
+          final reporteHistorico = !esPendientes ? reporte as ReporteHistorico : null;
 
-          return _buildReportCard(reporte, esPendiente, reportePendiente, reporteHistorico);
+          return _buildReportCard(reporte, esPendientes, reportePendiente, reporteHistorico);
         },
       ),
     );
@@ -518,7 +517,7 @@ class _HistorialScreenState extends State<HistorialScreen> with SingleTickerProv
 
     return InkWell(
       onTap: () {
-        if (_tabController.index == 0) {
+        if (esPendiente) {
           _navegarADetallePendiente(reportePendiente!);
         } else {
           _navegarADetalleHistorico(reporteHistorico!);
