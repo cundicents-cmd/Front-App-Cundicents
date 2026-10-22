@@ -28,13 +28,22 @@ class Usuario {
 
   /// Crea un Usuario a partir del JSON devuelto por el endpoint GET /users/{user_id}.
   factory Usuario.fromDetailResponse(Map<String, dynamic> json) {
+    // La cédula puede venir como int o String, manejamos ambos casos
+    int? cedula;
+    final cedulaValue = json['cedula'];
+    if (cedulaValue is int) {
+      cedula = cedulaValue;
+    } else if (cedulaValue is String) {
+      cedula = int.tryParse(cedulaValue);
+    }
+
     return Usuario(
       idUsuario: 0, // El ID no viene en este endpoint, se debe pasar por separado
       correo: json['email'] as String,
       hashPassword: '', // No se expone en este endpoint
       nombre: json['first_name'] as String?,
       apellido: json['last_name'] as String?,
-      cedula: json['cedula'] as int?,
+      cedula: cedula,
     );
   }
 

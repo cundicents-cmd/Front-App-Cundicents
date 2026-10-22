@@ -379,33 +379,6 @@ class _LoginScreenState extends State<LoginScreen> {
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _handleLogin(),
             ),
-            const SizedBox(height: 6),
-
-            // Recordarme
-            Row(
-              children: [
-                Checkbox(
-                  value: _rememberMe,
-                  onChanged: (value) => setState(() => _rememberMe = value ?? false),
-                  activeColor: _rojo,
-                  checkColor: Colors.white,
-                  side: BorderSide(color: _borde, width: 1.8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Recordarme en este dispositivo',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      color: const Color(0xFF555555),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
             const SizedBox(height: 16),
 
             // Botón principal

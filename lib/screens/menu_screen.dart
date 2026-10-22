@@ -5,12 +5,8 @@ import '../../models/usuario.dart';
 import 'login_screen.dart';
 import 'crear_reporte_screen.dart';
 import 'historial_screen.dart';
+import 'perfil_screen.dart';
 
-/// Pantalla principal (menú) de Cundicents tras autenticación exitosa.
-///
-/// Por ahora es una pantalla vacía funcional, preparada para agregar
-/// futuras secciones (reportes, histórico, perfil, etc.).
-/// Incluye acción de cerrar sesión.
 class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
 
@@ -143,6 +139,13 @@ class _MenuScreenState extends State<MenuScreen> {
   void _irAHistorial() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => HistorialScreen(usuario: _usuario!)),
+    );
+  }
+
+  /// Navega a la pantalla de perfil.
+  void _irAPerfil() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => PerfilScreen(usuario: _usuario!)),
     );
   }
 
@@ -457,19 +460,11 @@ class _MenuScreenState extends State<MenuScreen> {
         _buildModuleCard(
           icon: Icons.person_outlined,
           title: 'Mi perfil',
-          subtitle: 'Próximamente',
+          subtitle: 'Datos, seguridad y soporte',
           color: _verde,
-          onTap: () => _mostrarProximamente('Mi perfil'),
+          onTap: _irAPerfil,
         ),
         const SizedBox(height: 12),
-
-        _buildModuleCard(
-          icon: Icons.help_outline,
-          title: 'Ayuda y soporte',
-          subtitle: 'Próximamente',
-          color: _gris,
-          onTap: () => _mostrarProximamente('Ayuda y soporte'),
-        ),
 
         const SizedBox(height: 20),
 
@@ -590,7 +585,7 @@ class _MenuScreenState extends State<MenuScreen> {
         children: [
           _buildNavItem(0, Icons.add_outlined, 'Crear', true, onTap: _irACrearReporte),
           _buildNavItem(1, Icons.history_outlined, 'Historial', false, onTap: _irAHistorial),
-          _buildNavItem(2, Icons.person_outlined, 'Usuario', false, onTap: () => _mostrarProximamente('Usuario')),
+          _buildNavItem(2, Icons.person_outlined, 'Perfil', false, onTap: _irAPerfil),
           _buildNavItem(3, Icons.logout, 'Salir', false, isLogout: true, onTap: _cerrarSesion),
         ],
       ),
